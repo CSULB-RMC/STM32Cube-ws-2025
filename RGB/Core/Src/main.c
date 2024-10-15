@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,21 +31,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-int exponent(int i){
-	int d = 1;
-	for(int j = 3; j >= (i-5) * 2; j--){
-		d *= 16;
+int CAN_MESSAGE_CONVERSION(uint8_t *RxData, int length){
+	int x = 0;
+	int len = length - 1;
+	for(int i = 0; i <= len; i++){
+		x += RxData[len-i] * pow(16, i*2);
 	}
-	return d;
-}
-int CAN_MESSAGE_CONVERSION(uint8_t RxData[8]){
-	 int d;
-	 int x = 0;
-	 for(int i = 7; i >= 5; i--){
-		 d = exponent(i);
-		 x += RxData[i] * d;
-	  }
-	 return x;
+	return x;
 }
 /* USER CODE END PD */
 
@@ -120,30 +112,69 @@ int main(void)
   MX_TIM1_Init();
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
-  TIM1->ARR = 1000;
-  TIM1->CCR1 = 1000; //red
-  TIM1->CCR2 = 750; //blue
-  TIM1->CCR3 = 750;//green
 
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+
+  TxHeader.DLC = 8;
+  TxHeader.IDE = CAN_ID_EXT;
+  TxHeader.RTR = CAN_RTR_DATA;
+  TxHeader.ExtId = 17;
+
+  TIM1->ARR = 1000;
+  TIM1->CCR1 = 999; //red
+  TIM1->CCR2 = 750; //blue
+  TIM1->CCR3 = 750;//green
+
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);//TODOS
+  uint8_t sub_r[2], sub_b[2], sub_g[2];
+  int r, g, b;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	int x = 0;
     /* USER CODE END WHILE */
-	if(RxHeader.ExtId == 30){
-		x = CAN_MESSAGE_CONVERSION(RxData);
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, x);
 
-	}
     /* USER CODE BEGIN 3 */
+	  if(datacheck){
+		  if(RxHeader.ExtId == 30){
+			  sub_r[0] = RxData[2];
+			  sub_r[1] = RxData[3];
+			  sub_b[0] = RxData[4];
+			  sub_b[1] = RxData[5];
+			  sub_g[0] = RxData[6];
+			  sub_g[1] = RxData[7];
+
+			  r = CAN_MESSAGE_CONVERSION(sub_r, 2);
+			  b = CAN_MESSAGE_CONVERSION(sub_b, 2);
+			  g = CAN_MESSAGE_CONVERSION(sub_g, 2);
+
+			  if(r == 1000){
+				  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+			  }else{
+				  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+			  }
+			  if(b == 1000){
+				  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+			  }else{
+				  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+			  }
+			  if(g == 1000){
+				  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+			  }else{
+				  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+			  }
+
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, r);
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, g);
+			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, b);
+			  datacheck = 0;
+		  }
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -165,12 +196,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 72;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
@@ -227,7 +257,20 @@ static void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+  CAN_FilterTypeDef canfilterconfig;
 
+  canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
+  canfilterconfig.FilterBank = 0;
+  canfilterconfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  canfilterconfig.FilterIdHigh = 0;
+  canfilterconfig.FilterIdLow = 0;
+  canfilterconfig.FilterMaskIdHigh = 0;
+  canfilterconfig.FilterMaskIdLow = 0;
+  canfilterconfig.FilterMode = CAN_FILTERMODE_IDMASK;
+  canfilterconfig.FilterScale = CAN_FILTERSCALE_32BIT;
+  canfilterconfig.SlaveStartFilterBank = 40;
+
+  HAL_CAN_ConfigFilter(&hcan1, &canfilterconfig);
   /* USER CODE END CAN1_Init 2 */
 
 }
@@ -326,6 +369,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
