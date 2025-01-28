@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -18,13 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "can.h"
-#include "tim.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <math.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,14 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-int CAN_MESSAGE_CONVERSION(uint8_t *RxData, int length){
-	int x = 0;
-	int len = length - 1;
-	for(int i = 0; i <= len; i++){
-		x += RxData[len-i] * pow(16, i*2);
-	}
-	return x;
-}
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,18 +53,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-CAN_TxHeaderTypeDef TxHeader;
-CAN_RxHeaderTypeDef RxHeader;
-uint8_t TxData[8];
-uint8_t RxData[8];
-uint32_t TxMailbox;
 
-int datacheck = 0;
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
-	datacheck = 1;
-}
 /* USER CODE END 0 */
 
 /**
@@ -105,33 +84,8 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_TIM1_Init();
-  MX_CAN1_Init();
-  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_CAN_Start(&hcan1);
-  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-
-  TxHeader.DLC = 8;
-  TxHeader.IDE = CAN_ID_EXT;
-  TxHeader.RTR = CAN_RTR_DATA;
-  TxHeader.ExtId = 17;
-  TIM2->ARR = 714;
-  TIM1->ARR = 1000;
-
-  TIM2->CCR1 = 0;
-  //TIM1->CCR1 = 0; //red
-  TIM1->CCR2 = 1000; //blue
-  TIM1->CCR3 = 980;//green
-
-  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);//TODOS
-  uint8_t sub_r[2], sub_b[2], sub_g[2];
-  int r, g, b;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,25 +95,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(datacheck){
-		  if(RxHeader.ExtId == 30){
-			  sub_r[0] = RxData[2];
-			  sub_r[1] = RxData[3];
-			  sub_b[0] = RxData[4];
-			  sub_b[1] = RxData[5];
-			  sub_g[0] = RxData[6];
-			  sub_g[1] = RxData[7];
-
-			  r = CAN_MESSAGE_CONVERSION(sub_r, 2);
-			  b = CAN_MESSAGE_CONVERSION(sub_b, 2);
-			  g = CAN_MESSAGE_CONVERSION(sub_g, 2);
-
-			  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, r);
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, g);
-			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, b);
-			  datacheck = 0;
-		  }
-	  }
   }
   /* USER CODE END 3 */
 }
@@ -181,15 +116,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 72;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -199,12 +129,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
