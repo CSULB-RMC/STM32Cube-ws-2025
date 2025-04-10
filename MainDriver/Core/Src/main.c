@@ -45,6 +45,17 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+CAN_TxHeaderTypeDef TxHeader;
+CAN_RxHeaderTypeDef RxHeader;
+
+uint32_t TxMailbox;
+uint32_t frequency, duty_cycle;
+uint32_t capture_value;
+
+uint8_t TxData[8];
+uint8_t RxData[8];
+
+int datacheck = 0;
 
 /* USER CODE END PV */
 
@@ -63,20 +74,20 @@ int CAN_MESSAGE_CONVERSION(uint8_t *RxData, int length){
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-CAN_TxHeaderTypeDef TxHeader;
-CAN_RxHeaderTypeDef RxHeader;
-uint8_t TxData[8];
-uint8_t RxData[8];
-uint32_t TxMailbox;
-int datacheck = 0;
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
-//	if(RxHeader.ExtId == 23){
-//		datacheck = 1;
-//	}
 	datacheck = 1;
+}
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	if(htim ->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+		capture_value = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+		if(capture_value) {
+			frequency = SystemCoreClock / (capture_value);
+			duty_cycle = 10000 * HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2) / capture_value;
+		}
+	}
 }
 /* USER CODE END 0 */
 
@@ -131,11 +142,14 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	int x;
 	if(datacheck){
+		if(RxHeader.ExtId == 783 || RxHeader.ExtId == 784 || RxHeader.ExtId == 785 || RxHeader.ExtId == 786){
+			datacheck = 0;
+		}
 		if(RxHeader.ExtId == 30){
 			datacheck = 0;
 		}
 		if(RxHeader.ExtId == 31){
-
+			datacheck = 0;
 		}
 	}
   }
