@@ -1,0 +1,5 @@
+../ECUAL/LED/LED_Program.c:10:6:LED_voidInit	1
+../ECUAL/LED/LED_Program.c:19:6:LED_voidTurnON	1
+../ECUAL/LED/LED_Program.c:23:6:LED_voidTurnOFF	1
+../ECUAL/LED/LED_Program.c:27:6:LED_voidToggle	1
+../ECUAL/LED/LED_Program.c:31:4:LED_u8Read	1

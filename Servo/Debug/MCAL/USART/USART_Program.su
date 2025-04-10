@@ -1,0 +1,4 @@
+../MCAL/USART/USART_Program.c:11:6:USART_voidInit	16	static
+../MCAL/USART/USART_Program.c:98:6:USART_voidSendData	16	static
+../MCAL/USART/USART_Program.c:103:6:USART_voidReceiveData	16	static
+../MCAL/USART/USART_Program.c:108:13:USART_voidConfigurePins	24	static

@@ -1,0 +1,3 @@
+../ECUAL/SERVO/SERVO_Program.c:12:6:SERVO_voidInit	1
+../ECUAL/SERVO/SERVO_Program.c:18:6:SERVO_voidSetAngle	1
+../ECUAL/SERVO/SERVO_Program.c:23:12:SERVO_f32AngleMap	1

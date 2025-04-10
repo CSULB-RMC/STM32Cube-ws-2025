@@ -1,0 +1,4 @@
+../ECUAL/SSD/SSD_Program.c:13:6:SSD_voidInit	24	static
+../ECUAL/SSD/SSD_Program.c:21:6:SSD_voidSetNumber	32	static
+../ECUAL/SSD/SSD_Program.c:32:6:SSD_voidSetDecimalPoint	16	static
+../ECUAL/SSD/SSD_Program.c:37:6:SSD_voidTurnOFF	24	static

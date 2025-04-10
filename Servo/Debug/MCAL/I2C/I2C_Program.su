@@ -1,0 +1,12 @@
+../MCAL/I2C/I2C_Program.c:12:6:I2C_voidInit	16	static
+../MCAL/I2C/I2C_Program.c:54:6:I2C_voidMasterSendData	32	static
+../MCAL/I2C/I2C_Program.c:83:6:I2C_voidMasterReceiveData	32	static
+../MCAL/I2C/I2C_Program.c:118:6:I2C_voidSlaveSendData	16	static
+../MCAL/I2C/I2C_Program.c:122:6:I2C_voidSlaveReceiveData	16	static
+../MCAL/I2C/I2C_Program.c:126:13:I2C_voidConfigurePins	24	static
+../MCAL/I2C/I2C_Program.c:152:6:I2C_voidReset	16	static
+../MCAL/I2C/I2C_Program.c:157:6:I2C_voidMasterSendDataIT	16	static
+../MCAL/I2C/I2C_Program.c:167:6:I2C_voidMasterReceiveDataIT	16	static
+../MCAL/I2C/I2C_Program.c:177:6:I2C_voidEventInterruptHandler	32	static
+../MCAL/I2C/I2C_Program.c:277:6:I2C_voidErrorInterruptHandler	24	static
+../MCAL/I2C/I2C_Program.c:324:6:I2C_voidInterruptControl	16	static

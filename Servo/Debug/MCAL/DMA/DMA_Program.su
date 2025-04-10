@@ -1,0 +1,3 @@
+../MCAL/DMA/DMA_Program.c:10:6:DMA_voidInit	24	static
+../MCAL/DMA/DMA_Program.c:44:6:DMA_voidStreamEnable	16	static
+../MCAL/DMA/DMA_Program.c:50:6:DMA_voidSetAddress	24	static

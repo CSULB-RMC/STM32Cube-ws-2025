@@ -1,0 +1,5 @@
+../ECUAL/INA219/INA219_Program.c:12:6:INA219_voidInit	1
+../ECUAL/INA219/INA219_Program.c:36:5:INA219_s16ReadShuntVoltage	1
+../ECUAL/INA219/INA219_Program.c:51:5:INA219_u16ReadBusVoltage	1
+../ECUAL/INA219/INA219_Program.c:67:5:INA219_s16ReadCurrent	1
+../ECUAL/INA219/INA219_Program.c:82:5:INA219_u16ReadPower	1

@@ -1,0 +1,6 @@
+../MCAL/RCC/RCC_Program.c:10:6:RCC_voidInit	3
+../MCAL/RCC/RCC_Program.c:129:6:RCC_voidPeripheralEnable	34
+../MCAL/RCC/RCC_Program.c:241:6:RCC_voidPeripheralDisable	34
+../MCAL/RCC/RCC_Program.c:353:6:RCC_voidPeripheralLowPowerEnable	34
+../MCAL/RCC/RCC_Program.c:465:6:RCC_voidPeripheralLowPowerDisable	34
+../MCAL/RCC/RCC_Program.c:577:6:RCC_voidPeripheralReset	34

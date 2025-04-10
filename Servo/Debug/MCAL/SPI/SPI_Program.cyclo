@@ -1,0 +1,7 @@
+../MCAL/SPI/SPI_Program.c:12:6:SPI_voidInit	11
+../MCAL/SPI/SPI_Program.c:67:6:SPI_voidEnable	1
+../MCAL/SPI/SPI_Program.c:72:6:SPI_voidDisable	6
+../MCAL/SPI/SPI_Program.c:87:6:SPI_voidSendData	2
+../MCAL/SPI/SPI_Program.c:92:6:SPI_voidReceiveData	2
+../MCAL/SPI/SPI_Program.c:97:6:SPI_voidBiderctionalUpdate	1
+../MCAL/SPI/SPI_Program.c:116:13:SPI_voidConfigurePins	13

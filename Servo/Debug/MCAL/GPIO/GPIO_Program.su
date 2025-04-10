@@ -1,0 +1,8 @@
+../MCAL/GPIO/GPIO_Program.c:11:6:GPIO_voidInitPort	24	static
+../MCAL/GPIO/GPIO_Program.c:66:6:GPIO_voidInitPin	24	static
+../MCAL/GPIO/GPIO_Program.c:120:6:GPIO_voidSetPinValue	24	static
+../MCAL/GPIO/GPIO_Program.c:153:6:GPIO_voidSetPortValue	24	static
+../MCAL/GPIO/GPIO_Program.c:183:6:GPIO_voidTogglePin	24	static
+../MCAL/GPIO/GPIO_Program.c:212:6:GPIO_voidTogglePort	24	static
+../MCAL/GPIO/GPIO_Program.c:241:4:GPIO_voidReadPin	24	static
+../MCAL/GPIO/GPIO_Program.c:270:5:GPIO_voidReadPort	24	static
