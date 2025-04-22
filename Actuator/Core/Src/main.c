@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -53,6 +55,17 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t frequency, act_pose;
+uint32_t capture_value;
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim5) {
+	if(htim5 ->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+		capture_value = HAL_TIM_ReadCapturedValue(htim5, TIM_CHANNEL_1);
+		if(capture_value) {
+			frequency = SystemCoreClock / (capture_value);
+			act_pose = 10000 * HAL_TIM_ReadCapturedValue(htim5, TIM_CHANNEL_2) / capture_value;
+		}
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -84,7 +97,40 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+  TIM1->ARR = 1000;
+  TIM2->ARR = 1000;
+  TIM3->ARR = 1000;
+
+//  PA_8 (D7) 1/1 - Actuator 1a polarity
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // D7
+//  PA_9 (D8) 1/2 - Actuator 1a on/off
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2); // D8
+
+//  PA_10 (D2) 1/3 - Cim
+
+//  PB_4 (D5) 3/1 - Actuator 1b polarity
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+//  PB_5 (D4) 3/2 - Actuator 1b on/off
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+//
+//  PB_8 (D15) 2/1 - Actuator 2 on/off
+//  PB_9 (D14) 2/2 - Actuator 2 polarity
+//  PB_10 (D6) 2/3 - Rev Reading
+  // Pins
+//  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3); // D6
+//
+//  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // D15  Actuator 2 Polarity 1
+//  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2); // D14 Actuator 2 Polarity 2
+//  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3); // D6 Actuator 2 Relay
+
+  // Duty Cycle (Both pins as high: one polarity, both pins as low: opposite polarity)
+
 
   /* USER CODE END 2 */
 
@@ -93,8 +139,30 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-//as
+
     /* USER CODE BEGIN 3 */
+	  //  PA_8 (D7) 1/1 - Actuator 1a polarity
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000); // 100% HIGH // LOW turns relays on, HIGH turns relays off
+
+	  //  PA_9 (D8) 1/2 - Actuator 1a on/off
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);  // 0%% LOW
+
+	  //  PB_4 (D5) 3/1 - Actuator 1b polarity
+	  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 1000);  // 0%% LOW
+
+	  //  PB_5 (D4) 3/2 - Actuator 1b on/off
+	  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); // 100% HIGH
+
+//	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 0); // 0%% LOW
+//
+//	  TIM2->CCR1 = 1000;
+//	  TIM2->CCR2 = 1000;
+//	  TIM2->CCR3 = 1000;
+//
+//	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1000); // Relay ON
+//	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, 0); // Relay OFF
+
+
   }
   /* USER CODE END 3 */
 }
@@ -116,10 +184,15 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 25;
+  RCC_OscInitStruct.PLL.PLLN = 144;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -129,12 +202,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
